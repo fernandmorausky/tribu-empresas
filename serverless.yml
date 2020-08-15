@@ -15,14 +15,27 @@ service: tribu-empresas
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
-
+custom:
+  tableName: 'TABLA-PLANETA-${self:provider.stage}'
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
 
 provider:
   name: aws
+  stage: dev
   runtime: nodejs12.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - { "Fn::GetAtt": ["PlanetaDynamoDBTable", "Arn" ] }
 
 # you can overwrite defaults here
 #  stage: dev
@@ -58,8 +71,36 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  insertarPlaneta:
+    handler: handler.insertarPlaneta
+    environment:
+      TABLA_PLANETA: ${self:custom.tableName}
+    layers:
+      - arn:aws:lambda:us-east-1:994273594919:layer:NODE_MODULES_LAYER:4
+    events:
+      - http:
+          path: planeta
+          method: post
+  obtenerPlaneta:
+    handler: handler.obtenerPlaneta
+    environment:
+      TABLA_PLANETA: ${self:custom.tableName}
+    layers:
+      - arn:aws:lambda:us-east-1:994273594919:layer:NODE_MODULES_LAYER:4
+    events:
+      - http:
+          path: planeta/{nombre}
+          method: get
+  obtenerPlanetas:
+    handler: handler.obtenerPlanetas
+    environment:
+      TABLA_PLANETA: ${self:custom.tableName}
+    layers:
+      - arn:aws:lambda:us-east-1:994273594919:layer:NODE_MODULES_LAYER:4
+    events:
+      - http:
+          path: planetas
+          method: get
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -97,8 +138,7 @@ functions:
 #            path: /hello
 
 #    Define function environment variables here
-#    environment:
-#      variable2: value2
+
 
 # you can add CloudFormation resource templates here
 #resources:
@@ -111,3 +151,20 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+resources:
+  Resources:
+    PlanetaDynamoDBTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: nombre
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: nombre
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.tableName}

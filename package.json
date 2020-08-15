@@ -1,0 +1,29 @@
+{
+  "name": "tribu-empresas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fernandmorausky/tribu-empresas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fernandmorausky/tribu-empresas/issues"
+  },
+  "homepage": "https://github.com/fernandmorausky/tribu-empresas#readme",
+  "dependencies": {
+    "aws-sdk": "^2.733.0",
+    "http": "0.0.1-security",
+    "https": "^1.0.0",
+    "node-fetch": "^2.6.0"
+  },
+  "devDependencies": {
+    "jest": "^26.4.0"
+  }
+}
