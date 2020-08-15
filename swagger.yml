@@ -20,11 +20,18 @@ paths:
         200:
           description: Planetas almacenados en nuestra DB
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/planeta'
+            type: object
+            properties:
+              ok:
+                type: boolean
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/planeta'
         400:
-          description: Ocurrio un error
+          description: Ocurrio un error inesperado
+          schema:
+            $ref: '#/definitions/error'
   /planeta:
     post:
       tags:
@@ -49,12 +56,21 @@ paths:
               type: integer
               example: 1
       responses:
-        201:
-          description: item created
+        200:
+          description: Planeta creado correctamenta
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/planeta'
         400:
-          description: idPlaneta no encontradp
-        409:
-          description: idPlaneta existente
+          description: Ocurrio un error inesperado
+          schema:
+            $ref: '#/definitions/error'
   /planeta/{nombre}:
     get:
       tags:
@@ -76,33 +92,87 @@ paths:
         200:
           description: Planeta obetnido
           schema:
-            $ref: '#/definitions/planeta'
+            type: object
+            properties:
+              ok:
+                type: boolean
+              data:
+                $ref: '#/definitions/planeta'
         400:
           description: Planeta no encontrado en nuestra DB
+          schema:
+            $ref: '#/definitions/error'
 definitions:
   planeta:
     type: object
     required:
     - id
     - name
+    - manufacturer
     - releaseDate
     properties:
-      id:
+      nombre:
         type: string
-        format: uuid
-        example: d290f1ee-6c54-4b01-90e6-d701748f0851
-      name:
+        example: Tatooine
+      periodo_rotacion:
         type: string
-        example: Widget Adapter
-      releaseDate:
+        example: 23
+      diametro:
         type: string
-        format: date-time
-        example: 2016-08-29T09:12:33.001Z
-
-# host: n1cy4ppx30.execute-api.us-east-1.amazonaws.com
-# basePath: /dev
+        example: 10465
+      poblacion:
+        type: string
+        example: 200000
+      clima:
+        type: string
+        example: arid
+      terrenos:
+        type: string
+        example: desert
+      residentes:
+        type: array
+        items:
+          type: object
+          properties:
+            nombre:
+              type: string
+              example: Luke Skywalker
+            alto:
+              type: string
+              example: 172
+            peso:
+              type: string
+              example: 77
+            color_cabello:
+              type: string
+              example: blod
+            color_ojos:
+              type: string
+              example: blue
+            genero:
+              type: string
+              example: male
+          
+  error:
+    type: object
+    properties:
+      ok: 
+        type: boolean
+        example: false
+      err:
+        type: object
+        properties:
+          message:
+            type: string
+            example: Missing required key 'Key' in params
+          code:
+            type: string
+            example: MissingRequiredParameter
+          time:
+            type: string
+            example: "2020-08-15T19:33:32.822Z"
+      
 schemes:
  - https
-# Added by API Auto Mocking Plugin
 host: n1cy4ppx30.execute-api.us-east-1.amazonaws.com
 basePath: /dev

@@ -7,12 +7,11 @@ const AWS = require('aws-sdk');
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const TABLA_PLANETA = process.env.TABLA_PLANETA;
 
-
-const getDataAPI = async (peliculas, handl) => {
+const getDataAPI = async (listaURL, handl) => {
   let lista = []
-  console.log("IterableData", peliculas)
-  for (const pelicula of peliculas) {
-    const result = await fetch(pelicula)
+  console.log("IterableData", listaURL)
+  for (const url of listaURL) {
+    const result = await fetch(url)
       .then(response => {
         return response.json();
       })
@@ -28,15 +27,11 @@ const getDataAPI = async (peliculas, handl) => {
 
 module.exports.insertarPlaneta = async (event, context, callback) => {
 
-
-  let error;
-
   let { idPlaneta } = JSON.parse(event.body);
 
   const handlPlaneta = resultJson => {
     let {
       residents: residentes,
-      films: peliculas,
       name: nombre,
       rotation_period: periodo_rotacion,
       diameter: diametro,
@@ -46,57 +41,16 @@ module.exports.insertarPlaneta = async (event, context, callback) => {
     } = resultJson;
 
     return {
-      residentes,
-      peliculas,
-      nombre,
+      nombre: nombre.replace(' ', ''),
       periodo_rotacion,
       diametro,
       poblacion,
       clima,
       terrenos,
+      residentes,
     }
   }
-  const handlPeliculas = resultJson => {
-    let {
-      title: titulo,
-      episode_id: id_episodio,
-      opening_crawl: apertura,
-      director,
-      producer: productor,
-      vehicles: vehiculos,
-      characters: personajes
-    } = resultJson;
-
-    return {
-      titulo,
-      id_episodio,
-      apertura,
-      director,
-      productor,
-      vehiculos,
-      personajes
-    }
-  }
-  const handlVehiculo = resultJson => {
-    let {
-      name: nombre,
-      model: modelo,
-      manufacturer: fabricante,
-      cost_in_credits: costo,
-      passengers: pasajeros,
-      vehicle_class: clase
-    } = resultJson;
-
-    return {
-      nombre,
-      modelo,
-      fabricante,
-      costo,
-      pasajeros,
-      clase
-    }
-  }
-  const handlPersonaje = resultJson => {
+  const handlResidentes = resultJson => {
     let {
       name: nombre,
       height: alto,
@@ -123,36 +77,30 @@ module.exports.insertarPlaneta = async (event, context, callback) => {
       return res[0];
     })
     .catch(err => {
-      callback(Error(err))
+      callback(null, {
+        statusCode: 400,
+        body: JSON.stringify({
+          ok: false,
+          err
+        })
+      })
     })
 
-  let resultPeliculas = await getDataAPI(resultPlaneta.peliculas, handlPeliculas)
+  let resultResidentes = await getDataAPI(resultPlaneta.residentes, handlResidentes)
     .then(res => {
       return res;
     })
     .catch(err => {
-      callback(Error(err))
+      callback(null, {
+        statusCode: 400,
+        body: JSON.stringify({
+          ok: false,
+          err
+        })
+      })
     })
 
-  for (let pelicula of resultPeliculas) {
-    /////////////////////////////////////////////////
-    //////////////  VEHICULOS  //////////////////////
-    /////////////////////////////////////////////////
-    let vehiculosInfo = await getDataAPI(pelicula.vehiculos, handlVehiculo)
-      .then(res => {
-        return res;
-      })
-    pelicula.vehiculosInfo = vehiculosInfo;
-    /////////////////////////////////////////////////
-    //////////////  PERSONAJES  /////////////////////
-    /////////////////////////////////////////////////
-    let personajesInfo = await getDataAPI(pelicula.personajes, handlPersonaje)
-      .then(res => {
-        return res;
-      })
-    pelicula.personajesInfo = personajesInfo;
-  }
-  resultPlaneta.peliculasInfo = resultPeliculas;
+  resultPlaneta.residentes = resultResidentes;
   console.log("resultPlaneta", resultPlaneta)
 
   const params = {
@@ -164,32 +112,25 @@ module.exports.insertarPlaneta = async (event, context, callback) => {
     .then(res => {
     })
     .catch((err) => {
-      error = err;
-    });
-
-    if(!error){
-      callback(null, {
-        statusCode: 200,
-        body: JSON.stringify({ 
-          ok: true,
-          message: resultPlaneta 
-        })
-      })
-    }
-    else{
       callback(null, {
         statusCode: 400,
         body: JSON.stringify({
           ok: false,
-          message: error 
+          err
         })
       })
-    }
-  
-}
-module.exports.obtenerPlaneta = async event => {
+    });
 
-  let result;
+  callback(null, {
+    statusCode: 200,
+    body: JSON.stringify({
+      ok: true,
+      data: resultPlaneta
+    })
+  })
+}
+
+module.exports.obtenerPlaneta = async (event, context, callback) => {
   let { nombre } = event.pathParameters;
   const params = {
     TableName: TABLA_PLANETA,
@@ -197,53 +138,61 @@ module.exports.obtenerPlaneta = async event => {
       nombre,
     }
   }
+  let data;
   await dynamoDB.get(params)
     .promise()
     .then(res => {
-      result = res;
+      let { Item } = res;
+      data = Item;
     })
     .catch((err) => {
-      result = err;
+      callback(null, {
+        statusCode: 400,
+        body: JSON.stringify({
+          ok: false,
+          err
+        })
+      })
     });
 
-
-  return {
+  callback(null, {
     statusCode: 200,
-    body: JSON.stringify(
-      {
-        input: result,
-      },
-      null,
-      2
-    ),
-  };
+    body: JSON.stringify({
+      ok: true,
+      data
+    })
+  })
 }
 
-module.exports.obtenerPlanetas = async event => {
+module.exports.obtenerPlanetas = async (event, context, callback) => {
 
-  let result;
+  let data;
   const params = {
     TableName: TABLA_PLANETA
   }
   await dynamoDB.scan(params)
     .promise()
-    .then(data => {
-      result = data.Items;
+    .then(res => {
+      let { Items } = res;
+      data = Items;
     })
     .catch((err) => {
-      result = err;
+      callback(null, {
+        statusCode: 400,
+        body: JSON.stringify({
+          ok: false,
+          err
+        })
+      })
     });
 
-  return {
+  callback(null, {
     statusCode: 200,
-    body: JSON.stringify(
-      {
-        input: result,
-      },
-      null,
-      2
-    ),
-  };
+    body: JSON.stringify({
+      ok: true,
+      data
+    })
+  })
 }
 
 module.exports.getDataAPI = getDataAPI;
