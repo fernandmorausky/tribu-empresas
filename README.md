@@ -75,9 +75,19 @@ Para realizar el despliegue en AWS usar el siquiente comando serverless:
 sls deploy
 ```
 
+
+## API
+
+El API provee 3 endpoint:
+
+<p align="center"><img src="https://github.com/fernandmorausky/images/blob/master/ENDPOINTS.png" width="80%"/></p>
+
+[Swagger](https://app.swaggerhub.com/apis-docs/morausky/tribu-empresas/1.0.0)
+
 ## Documentation
 
 Aprender acerca de Tribu-empresas
 
 - [Getting Started](https://github.com/fernandmorausky/tribu-empresas/new/master?readme=1#getting-started)
-
+- [Swagger](https://app.swaggerhub.com/apis-docs/morausky/tribu-empresas/1.0.0)
+Nota: La url de swagger no se podra probar ya que es un swaggerhub trial y no permite el cambio de la URL 

@@ -1,0 +1,108 @@
+swagger: '2.0'
+info:
+  description: API tribu-empresas
+  version: 1.0.0
+  title: Tribu empresas API
+  contact:
+    email: fernandmorausky@gmail.com
+paths:
+  /planetas:
+    get:
+      tags:
+      - Planeta
+      summary: Buscar todos los planetas en nuestra DB.
+      operationId: buscarPlanetas
+      description: |
+        Obtener todos los planetas almacenados en nuestra DB
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Planetas almacenados en nuestra DB
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/planeta'
+        400:
+          description: Ocurrio un error
+  /planeta:
+    post:
+      tags:
+      - Planeta
+      summary: Inserta un planeta en nuestra DB.
+      operationId: insertaPlaneta
+      description: consume API´s de planetas y se inserta a nuestra DB
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: idPlaneta
+        description: id de planeta a buscar en las API´s
+        schema:
+          type: integer
+          required:
+          - idPlaneta
+          properties:
+            idPlaneta:
+              type: integer
+              example: 1
+      responses:
+        201:
+          description: item created
+        400:
+          description: idPlaneta no encontradp
+        409:
+          description: idPlaneta existente
+  /planeta/{nombre}:
+    get:
+      tags:
+      - Planeta
+      summary: Devuelve un planeta 
+      operationId: buscarPlaneta
+      description: Buscar un planeta de nuestra DB
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: path
+        type: string
+        name: nombre
+        required: true
+        description: Nombre planeta
+      responses:
+        200:
+          description: Planeta obetnido
+          schema:
+            $ref: '#/definitions/planeta'
+        400:
+          description: Planeta no encontrado en nuestra DB
+definitions:
+  planeta:
+    type: object
+    required:
+    - id
+    - name
+    - releaseDate
+    properties:
+      id:
+        type: string
+        format: uuid
+        example: d290f1ee-6c54-4b01-90e6-d701748f0851
+      name:
+        type: string
+        example: Widget Adapter
+      releaseDate:
+        type: string
+        format: date-time
+        example: 2016-08-29T09:12:33.001Z
+
+# host: n1cy4ppx30.execute-api.us-east-1.amazonaws.com
+# basePath: /dev
+schemes:
+ - https
+# Added by API Auto Mocking Plugin
+host: n1cy4ppx30.execute-api.us-east-1.amazonaws.com
+basePath: /dev
